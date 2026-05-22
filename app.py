@@ -25,14 +25,8 @@ load_dotenv()
 # --------------- Configuration ---------------
 endpoint = os.environ["AZURE_AI_PROJECT_ENDPOINT"]
 model_deployment = os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
-
-DEFAULT_OAUTH_CONNECTION_ID = "/subscriptions/1ebf9966-e5ab-4c5a-bee5-634c68826dfe/resourceGroups/accaifoundry-ncus-rg/providers/Microsoft.CognitiveServices/accounts/foundryiq-test-project-resource/projects/foundryiq-test-project/connections/My-Azure-MCP-Server"
-
-oauth_connection_id = os.environ.get("MCP_OAUTH_CONNECTION_ID", DEFAULT_OAUTH_CONNECTION_ID)
-oauth_server_url = os.environ.get(
-    "MCP_OAUTH_SERVER_URL",
-    "https://app-ext-sout-mcp-profx-01.azurewebsites.net/mcp",
-)
+oauth_connection_id = os.environ["MCP_OAUTH_CONNECTION_ID"]
+oauth_server_url = os.environ["MCP_OAUTH_SERVER_URL"]
 
 # --------------- Shared clients (created at startup) ---------------
 credential = None

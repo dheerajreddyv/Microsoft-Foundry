@@ -1,0 +1,10 @@
+# Required by create_agent_with_toolbox.py and invoke_foundry_agent.py.
+# `agent-framework-foundry` and `azure-ai-projects` are pre-release; install with:
+#     pip install --pre -r requirements.txt
+
+agent-framework>=1.8.0
+agent-framework-foundry>=1.8.0
+azure-ai-projects>=2.1.0
+azure-identity>=1.17.0
+python-dotenv>=1.0.0
+requests>=2.31.0

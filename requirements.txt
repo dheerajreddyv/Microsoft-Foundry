@@ -1,0 +1,23 @@
+# Dependencies for provision_skill_tools.py, code_defined_skill.py,
+# code_defined_skill_prompt_agent.py and code_defined_skill_two_skills.py.
+#
+#   pip install -r requirements.txt
+#
+# Versions are pinned exactly. agent-framework-core 1.14.0 with
+# agent-framework-foundry 1.11.0 sends the skills preamble as a request-level
+# ``instructions`` field, which a Prompt Agent rejects:
+#   400 invalid_payload - "Not allowed when agent is specified." (param: instructions)
+# The pins below are the versions these scripts were verified against.
+
+# Skills API: InlineSkill, SkillsProvider, ToolApprovalMiddleware.
+agent-framework-core==1.12.1
+# FoundryAgent (agent_framework.foundry).
+agent-framework-foundry==1.10.3
+# Pulled in by the packages above; pinned to the verified version.
+agent-framework-openai==1.11.0
+# Prompt Agent management: AIProjectClient, PromptAgentDefinition, FunctionTool.
+azure-ai-projects==2.3.0
+# AzureCliCredential -- run `az login` before the scripts.
+azure-identity==1.25.3
+# Loads .env.
+python-dotenv==1.2.2

@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+itsdangerous
+
+# Azure / Foundry
+azure-ai-projects>=2.0.0b1
+azure-core
+openai
+
+# MSAL for web SSO
+msal

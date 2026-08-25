@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Foundry MCP-OAuth Chat</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, "Segoe UI", sans-serif; margin: 0;
+           background: #0f1116; color: #e7e9ee; }
+    header { display: flex; justify-content: space-between; align-items: center;
+             padding: 12px 20px; background: #161a23; border-bottom: 1px solid #232838; }
+    header h1 { font-size: 16px; margin: 0; }
+    button { background: #2a3144; color: #fff; border: 1px solid #3b4358;
+             border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+    button.primary { background: #2563eb; border: 0; font-weight: 600; padding: 9px 16px; }
+    main { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .panel { background: #161a23; border: 1px solid #232838; border-radius: 10px;
+             padding: 16px; margin-bottom: 16px; }
+    #log { height: 55vh; overflow-y: auto; padding: 10px; background: #0b0d13;
+           border: 1px solid #232838; border-radius: 8px;
+           font-family: ui-monospace, Consolas, monospace; font-size: 13px;
+           white-space: pre-wrap; }
+    .msg-user   { color: #9fd1ff; margin: 6px 0; }
+    .msg-agent  { color: #d6eaf0; margin: 6px 0; }
+    .msg-system { color: #f6c177; margin: 6px 0; }
+    .msg-error  { color: #ff8a8a; margin: 6px 0; }
+    form { display: flex; gap: 8px; margin-top: 10px; }
+    input[type=text] { flex: 1; padding: 9px 12px; border-radius: 6px;
+                       background: #0b0d13; border: 1px solid #2a3144; color: #e7e9ee; }
+    .consent { background: #2a1f0d; border: 1px solid #594016; padding: 12px;
+               border-radius: 8px; margin: 10px 0; }
+    .consent a { color: #ffd479; word-break: break-all; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔐 Foundry MCP-OAuth Chat</h1>
+    <div>
+      <span id="who" style="font-size:13px; opacity:.85; margin-right:10px;">…</span>
+      <button onclick="location.href='/logout'">Sign out</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div id="log"></div>
+      <div id="consentArea"></div>
+      <form id="chatForm">
+        <input id="message" type="text" autocomplete="off"
+               placeholder="e.g. multiply 17 and 23 using the MCP tool" />
+        <button class="primary" id="sendBtn" type="submit">Send</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    let conversationId = null;
+    const logEl = document.getElementById('log');
+    const consentArea = document.getElementById('consentArea');
+
+    function append(cls, text) {
+      const div = document.createElement('div');
+      div.className = cls;
+      div.textContent = text;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function loadWhoAmI() {
+      const j = await (await fetch('/api/whoami')).json();
+      if (!j.signed_in) { location.href = '/login?next=/'; return; }
+      document.getElementById('who').textContent =
+        `${j.identity.upn}  (oid ${j.identity.oid.slice(0, 8)}…)`;
+    }
+
+    function showConsent(links) {
+      consentArea.innerHTML = '';
+      const box = document.createElement('div');
+      box.className = 'consent';
+      box.innerHTML = '<strong>🔐 OAuth consent required</strong><br>' +
+        'Open the link, complete consent, then click <em>Continue</em>.' +
+        '<ul></ul><button class="primary" id="continueBtn">Continue</button>';
+      const ul = box.querySelector('ul');
+      links.forEach((l, i) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = l.consent_link; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = `${l.server_label} → ${l.consent_link}`;
+        li.appendChild(a); ul.appendChild(li);
+        if (i === 0) window.open(l.consent_link, '_blank', 'noopener');
+      });
+      consentArea.appendChild(box);
+      box.querySelector('#continueBtn').onclick = resumeAfterConsent;
+    }
+
+    async function resumeAfterConsent() {
+      consentArea.innerHTML = '';
+      append('msg-system', '↻ Resuming after consent…');
+      const j = await (await fetch('/api/chat/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation_id: conversationId }),
+      })).json();
+      handle(j);
+    }
+
+    function handle(j) {
+      if (j.status === 'consent_required') showConsent(j.consent_links || []);
+      else if (j.status === 'completed')    append('msg-agent', '🤖 ' + (j.answer || ''));
+      else                                  append('msg-error', '⚠️  ' + (j.answer || 'error'));
+    }
+
+    document.getElementById('chatForm').onsubmit = async (ev) => {
+      ev.preventDefault();
+      const inp = document.getElementById('message');
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = '';
+      append('msg-user', '🧑 ' + text);
+      const j = await (await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      })).json();
+      conversationId = j.conversation_id || conversationId;
+      handle(j);
+    };
+
+    loadWhoAmI();
+  </script>
+</body>
+</html>

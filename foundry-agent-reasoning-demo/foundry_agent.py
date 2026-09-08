@@ -135,8 +135,9 @@ async def ensure_agent(endpoint: str, credential: AzureCliCredential) -> str:
     produces the "thinking" chunks, so it must be configured on this definition
     -- passing it at call time has no effect for a stored agent.
 
-    Each run publishes a new version, which keeps the stored definition in sync
-    with this file.
+    Every run publishes the definition, which keeps the stored agent in sync
+    with this file. Publishing an unchanged definition reuses the existing
+    version rather than creating a new one.
     """
     async with AIProjectClient(endpoint=endpoint, credential=credential) as project:
         version = await project.agents.create_version(

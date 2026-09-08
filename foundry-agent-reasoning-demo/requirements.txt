@@ -1,0 +1,8 @@
+# NOTE: agent-framework-core and agent-framework-foundry version independently.
+# These are the exact versions this demo was verified against.
+# agent-framework-foundry 1.11.0 requires agent-framework-core>=1.13.0,<2,
+# so the pair below is compatible.
+agent-framework-core==1.15.0
+agent-framework-foundry==1.11.0
+azure-identity>=1.25.0
+python-dotenv>=1.0.0
